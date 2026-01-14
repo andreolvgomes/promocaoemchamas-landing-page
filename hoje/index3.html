@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Resumo de Ofertas 🔥</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --shopee-orange: #ee4d2d;
+            --fundo: #121212; /* Fundo escuro igual ao fundo da imagem enviada */
+            --texto: #1d1d1f;
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Inter', sans-serif;
+            background-color: var(--fundo);
+        }
+
+        header {
+            background: #fff; padding: 15px 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        header h1 { font-size: 0.95rem; font-weight: 900; margin: 0; color: var(--shopee-orange); }
+        #itemCount { font-size: 0.65rem; font-weight: 800; opacity: 0.6; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 10px 10px 100px;
+        }
+
+        .card {
+            background: #fff; border-radius: 12px; overflow: hidden;
+            text-decoration: none; color: inherit; display: flex;
+            flex-direction: column; position: relative;
+        }
+
+        /* Selo Circular de Desconto */
+        .off-badge {
+            position: absolute; top: 35px; right: 8px;
+            background: rgba(238, 77, 45, 0.9); color: #fff;
+            width: 42px; height: 42px; border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 900; z-index: 2; line-height: 1;
+        }
+        .off-badge span { font-size: 0.5rem; font-weight: 400; }
+
+        /* Faixa Superior (Logos) */
+        .top-banner {
+            background: var(--shopee-orange);
+            height: 24px; display: flex; align-items: center; justify-content: center;
+            gap: 5px; color: #fff; font-size: 10px; font-weight: 800;
+        }
+        .top-banner img { height: 10px; filter: brightness(0) invert(1); }
+
+        .img-container {
+            width: 100%; aspect-ratio: 1/1;
+            padding: 15px; box-sizing: border-box;
+            background: #fff; display: flex; align-items: center; justify-content: center;
+        }
+        .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        /* Rodapé de Preço Estilo Shopee */
+        .footer-price {
+            background: var(--shopee-orange);
+            padding: 6px 8px; color: #fff;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .footer-left { font-size: 8px; line-height: 1.2; font-weight: 600; }
+        .footer-left strong { font-size: 10px; display: block; }
+
+        .footer-right { text-align: right; }
+        .p-old { font-size: 8px; text-decoration: line-through; opacity: 0.8; display: block; }
+        .p-new { font-size: 1.1rem; font-weight: 900; display: block; }
+
+        #status { text-align: center; padding: 40px 20px; font-size: 0.85rem; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>PROMOÇÃO EM CHAMAS 🔥</h1>
+        <div id="itemCount">...</div>
+    </header>
+
+    <div id="status">Buscando ofertas...</div>
+    <div class="grid" id="productGrid"></div>
+
+    <script>
+        const JSON_URL = 'https://promocaoemchamas.s3.us-east-1.amazonaws.com/ofertas.json';
+
+        async function start() {
+            try {
+                const response = await fetch(JSON_URL);
+                const products = await response.json();
+                products.reverse();
+                
+                const grid = document.getElementById('productGrid');
+                const count = document.getElementById('itemCount');
+                const status = document.getElementById('status');
+
+                status.style.display = 'none';
+                count.innerText = `${products.length} PRODUTOS`;
+
+                grid.innerHTML = products.map(p => {
+                    const atual = parseFloat(p.current_price);
+                    const antigo = p.previous_price ? parseFloat(p.previous_price) : 
+                                 p.old_price ? parseFloat(p.old_price) : null;
+                    
+                    let badgeHtml = "";
+                    let oldPriceHtml = ""; 
+
+                    if (antigo && antigo > atual) {
+                        const pct = Math.round(((antigo - atual) / antigo) * 100);
+                        badgeHtml = `<div class="off-badge">${pct}%<span>OFF</span></div>`;
+                        oldPriceHtml = `R$${antigo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                    }
+
+                    return `
+                        <a href="${p.offerLink}" class="card" target="_blank">
+                            <div class="top-banner">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopee_logo.svg">
+                                SParcelado
+                            </div>
+                            ${badgeHtml}
+                            <div class="img-container">
+                                <img src="${p.image}" alt="Produto">
+                            </div>
+                            <div class="footer-price">
+                                <div class="footer-left">
+                                    <strong>SParcelado</strong>
+                                    Compre agora, pague depois!
+                                </div>
+                                <div class="footer-right">
+                                    <span class="p-old">${oldPriceHtml}</span>
+                                    <span class="p-new">R$${atual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                document.getElementById('status').innerText = "Erro ao carregar ofertas.";
+            }
+        }
+        start();
+    </script>
+</body>
+</html>
