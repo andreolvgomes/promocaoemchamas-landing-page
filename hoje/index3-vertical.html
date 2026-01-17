@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Promoção em Chamas 🔥 | Lista de Ofertas</title>
+  <meta name="description" content="Resumo diário das ofertas em formato de lista.">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f2f2f2;
+      color: #222;
+    }
+
+    header {
+      padding: 10px 6px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      background: #ff3b3b;
+      color: #fff;
+    }
+
+    /* LISTA */
+    #product-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 6px 4px; /* quase colado nas bordas */
+    }
+
+    /* CARD LISTA */
+    .product-card {
+      display: flex;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      min-height: 92px;
+    }
+
+    /* IMAGEM */
+    .p-img-container {
+      width: 92px;
+      height: 92px;
+      background: #fafafa;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .p-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      padding: 2px;
+    }
+
+    /* INFO */
+    .p-info {
+      flex: 1;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .p-title {
+      font-size: 0.75rem;
+      line-height: 1.15;
+      font-weight: 600;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    /* PREÇOS */
+    .p-price-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .p-old-price {
+      font-size: 0.65rem;
+      color: #888;
+      text-decoration: line-through;
+    }
+
+    .p-price-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .p-price {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #1b9c44;
+    }
+
+    .p-discount {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #fff;
+      background: #ff3b3b;
+      padding: 2px 6px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .stock-disclaimer {
+      font-size: 0.6rem;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+
+  <header>🔥 Ofertas do Dia</header>
+
+  <main id="product-feed">
+    <p style="font-size:0.75rem;color:#666;">Carregando ofertas...</p>
+  </main>
+
+  <script>
+    async function carregarOfertas() {
+      const feed = document.getElementById('product-feed');
+      try {
+        const response = await fetch('https://promocaoemchamas.s3.us-east-1.amazonaws.com/ofertas.json');
+        const dados = await response.json();
+        feed.innerHTML = '';
+
+        dados.forEach(item => {
+          const desconto = Math.round(
+            ((item.previous_price - item.current_price) / item.previous_price) * 100
+          );
+
+          const precoAtual = item.current_price.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          });
+
+          const precoAntigo = item.previous_price.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          });
+
+          feed.innerHTML += `
+            <a href="${item.offerLink}" class="product-card" target="_blank">
+              <div class="p-img-container">
+                <img src="${item.image}" class="p-img" alt="Produto">
+              </div>
+              <div class="p-info">
+                <div class="p-title">${item.description}</div>
+                <div class="p-price-row">
+                  <span class="p-old-price">${precoAntigo}</span>
+                  <div class="p-price-bottom">
+                    <span class="p-price">${precoAtual}</span>
+                    <span class="p-discount">${desconto}% OFF</span>
+                  </div>
+                  <span class="stock-disclaimer">Preço e estoque sujeitos a alteração.</span>
+                </div>
+              </div>
+            </a>
+          `;
+        });
+      } catch (e) {
+        feed.innerHTML = '<p style="font-size:0.75rem;color:#666;">Erro ao carregar ofertas.</p>';
+      }
+    }
+
+    carregarOfertas();
+  </script>
+
+</body>
+</html>
